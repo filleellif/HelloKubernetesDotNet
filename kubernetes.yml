@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  hellokubernetesdotnet
+spec:
+  replicas: 3
+  selector:
+    matchLabels: 
+      app: hellokubernetesdotnet
+  template:
+    metadata:
+      labels:
+        app: hellokubernetesdotnet
+    spec:
+      containers:
+      - name: hellokubernetesdotnet
+        image: krape1987/hellok8sdotnet:latest
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 80
+      restartPolicy: Always
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name:  hellokubernetesdotnet
+spec:
+  selector:
+    app:  hellokubernetesdotnet
+  type:  ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  labels:
+    name: hellokubernetesdotnet-ingress
+  name: hellokubernetesdotnet-ingress
+spec:
+  rules:
+    - host: hello.kristoffer.codes
+      http:
+        paths:
+          - backend:
+              service:
+                name: hellokubernetesdotnet
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - hello.kristoffer.codes
+      secretName: hellokubernetesdotnet-tls-cert
